@@ -23,25 +23,27 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Prepare Web Directory
+        run: |
+          mkdir -p www
+          cp Italiano_App_Complete.html www/index.html
 
-      - name: Initialize Capacitor App
+      - name: Initialize Capacitor
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Italiano Orders" "com.italiano.orders" --web-dir "."
+          npx cap init "Italiano" "com.italiano.orders" --web-dir "www"
           npx cap add android
           npx cap copy android
 
-      - name: Build Debug APK
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: Upload APK as Release Artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Italiano-Orders-APK
+          name: Italiano-App-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
