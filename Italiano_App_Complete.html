@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <!-- PWA Setup for standalone Android / iOS App -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="إيطاليانو">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a2a6c">
+    <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22%D9%85%D9%86%D8%B8%D9%88%D9%85%D8%A9%20%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A%D8%A7%D9%86%D9%88%20%D9%84%D9%84%D9%85%D9%84%D8%A7%D8%A8%D8%B3%22%2C%22short_name%22%3A%22%D8%A5%D9%8A%D8%B7%D8%A7%D9%84%D9%8A%D8%A7%D9%86%D9%88%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%231a2a6c%22%2C%22theme_color%22%3A%22%231a2a6c%22%7D">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>منظومة إدارة وتجهيز الأوامر المتكاملة | إيطاليانو</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a2a6c;
+            --accent: #b21f1f;
+            --header-red: #a30000;
+            --excel-border: #444;
+            --bg: #f4f6f9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #1e2029;
+            color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 0;
+        }
+
+        .main-app-container {
+            width: 100%;
+            max-width: 560px;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 25px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* --- شاشة الدخول --- */
+        #login-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999999;
+            padding: 20px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 350px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 18px;
+            padding: 26px 22px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .login-card h2 {
+            font-size: 19px;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+
+        .login-card p {
+            font-size: 12px;
+            color: #d1d8e0;
+            margin-bottom: 20px;
+        }
+
+        .input-box {
+            margin-bottom: 14px;
+            text-align: right;
+        }
+
+        .input-box label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #f1f2f6;
+            font-weight: bold;
+        }
+
+        .input-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            font-size: 14px;
+            color: #111;
+            outline: none;
+        }
+
+        .show-pass-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            font-size: 12px;
+            color: #eee;
+            margin-bottom: 18px;
+            cursor: pointer;
+        }
+
+        .btn-login-action {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
+        }
+
+        /* الشريط العلوي */
+        .app-header-bar {
+            background: #1a2a6c;
+            color: #fff;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12.5px;
+            border-bottom: 2px solid #e67e22;
+        }
+
+        .action-dock {
+            display: flex;
+            gap: 5px;
+            padding: 8px 8px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            overflow-x: auto;
+            justify-content: space-between;
+        }
+
+        .dock-btn {
+            flex: 1;
+            padding: 7px 4px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            background: #f8f9fa;
+            color: #333;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .dock-btn.archive { background: #fff8e7; border-color: #f39c12; color: #b7791f; }
+        .dock-btn.reports { background: #fdf2f8; border-color: #ec4899; color: #be185d; }
+        .dock-btn.users { background: #eef2ff; border-color: #6366f1; color: #4338ca; }
+        .dock-btn.fields { background: #f0fdf4; border-color: #22c55e; color: #15803d; }
+        .dock-btn.excel { background: #f0f9ff; border-color: #0ea5e9; color: #0369a1; }
+        .dock-btn.logout { background: #fef2f2; border-color: #ef4444; color: #b91c1c; }
+
+        /* حاوية الشيت الورقي */
+        .sheet-body-wrap {
+            padding: 8px 6px;
+            flex: 1;
+            background: #ede9e1;
+            overflow-x: auto;
+        }
+
+        .order-paper-card {
+            background: #fff;
+            border: 1.5px solid var(--excel-border);
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 480px;
+        }
+
+        .paper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px solid #222;
+            padding-bottom: 4px;
+            margin-bottom: 5px;
+        }
+
+        .brand-pill {
+            background: #111;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 3px;
+            text-align: center;
+            font-size: 9.5px;
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .title-text-wrap {
+            text-align: center;
+            flex: 1;
+        }
+
+        .title-text-wrap h2 {
+            color: var(--header-red);
+            font-size: 13.5px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+
+        .title-text-wrap h3 {
+            color: var(--header-red);
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* الجداول مع حدود ومربعات كاملة وواضحة مثل الإكسل */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+
+        .info-table td {
+            border: 1px solid var(--excel-border);
+            padding: 3px 4px;
+            font-size: 11px;
+        }
+
+        .info-table .lbl {
+            background: #f2eee6;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .info-table input, .info-table select {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 11px;
+        }
+
+        /* شبكة مربعات جدول الأصناف */
+        .items-grid-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            margin-bottom: -1px;
+        }
+
+        .items-grid-table th {
+            background: #ece7de;
+            font-weight: bold;
+            font-size: 11px;
+            border: 1px solid var(--excel-border);
+            padding: 3px 1px;
+        }
+
+        .items-grid-table td {
+            border: 1px solid var(--excel-border);
+            padding: 2px;
+            font-size: 11px;
+            height: 22px;
+        }
+
+        .items-grid-table input, .items-grid-table select {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 11px;
+            text-align: center;
+            height: 100%;
+        }
+
+        /* جدول الإجماليات المطابق للإكسل مع التفقيط */
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-table td {
+            border: 1px solid var(--excel-border);
+            padding: 3px 4px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .tafqeet-cell {
+            background: #fff;
+            font-weight: bold;
+            font-size: 10px;
+            color: #222;
+            text-align: center;
+        }
+
+        .paper-footer {
+            border: 1px solid var(--excel-border);
+            border-top: none;
+            padding: 6px 8px;
+            background: #fff;
+        }
+
+        .footer-note-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .footer-note-row input {
+            flex: 1;
+            border: none;
+            border-bottom: 1px dashed #888;
+            outline: none;
+            font-size: 11px;
+        }
+
+        .footer-action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            padding-top: 4px;
+        }
+
+        .btn-submit-order {
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(39, 174, 96, 0.3);
+        }
+
+        /* المودالات والداشبورد */
+        .modal-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.75);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+            padding: 10px;
+        }
+
+        .modal-body-card {
+            width: 100%;
+            max-width: 550px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 14px;
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+
+        .modal-head {
+            font-size: 15px;
+            font-weight: bold;
+            color: #1a2a6c;
+            border-bottom: 1.5px solid #eee;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* كروت الإحصائيات للداشبورد */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 4px;
+            text-align: center;
+        }
+
+        .stat-card .val {
+            font-size: 15px;
+            font-weight: bold;
+            color: #1a2a6c;
+            margin-top: 3px;
+        }
+
+        .stat-card .title {
+            font-size: 10.5px;
+            color: #64748b;
+        }
+
+        .progress-bar-bg {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 7px;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 3px;
+        }
+
+        .progress-bar-fill {
+            background: #3b82f6;
+            height: 100%;
+        }
+
+        .custom-tag-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-height: 90px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 6px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .tag-item {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag-item button {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .archive-list-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .archive-list-table th, .archive-list-table td {
+            border: 1px solid #ddd;
+            padding: 5px 3px;
+            text-align: center;
+        }
+
+        .archive-list-table th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+<!-- شاشة تسجيل الدخول -->
+<div id="login-modal">
+    <div class="login-card">
+        <div style="font-size: 32px; margin-bottom: 6px;">🔐</div>
+        <h2>مصنع إيطاليانو للقطن</h2>
+        <p>منظومة إدارة وتجهيز الأوامر</p>
+        
+        <div class="input-box">
+            <label>اسم المستخدم:</label>
+            <input type="text" id="user-input">
+        </div>
+        <div class="input-box">
+            <label>كلمة المرور:</label>
+            <input type="password" id="pass-input">
+        </div>
+        
+        <label class="show-pass-row">
+            <span>إظهار كلمة المرور خلي بالك</span>
+            <input type="checkbox" id="show-pass-chk" onchange="togglePass()">
+        </label>
+        
+        <button class="btn-login-action" onclick="handleUserLogin()">دخول المنظومة 🚀</button>
+        <div id="login-err-msg" style="color: #ff9999; font-size: 12px; margin-top: 8px; display: none;">بيانات الدخول غير صحيحة!</div>
+    </div>
+</div>
+
+<!-- الحاوية الرئيسية -->
+<div class="main-app-container">
+    <div class="app-header-bar">
+        <span>⭐ منظومة طلبات وتجهيز الأوردرات</span>
+        <span id="user-status-tag" style="color: #fae49d; font-weight: bold;">(23 - مدير النظام)</span>
+    </div>
+
+    <!-- أزرار الإجراءات العلوية المستقلة -->
+    <div class="action-dock">
+        <button class="dock-btn archive" onclick="openArchive()">📂 الأرشيف</button>
+        <button class="dock-btn reports" id="admin-reports-btn" onclick="openReportsDashboard()">📈 التقارير والنسب</button>
+        <button class="dock-btn users" id="admin-users-btn" onclick="openUserManagement()">👥 المستخدمين</button>
+        <button class="dock-btn fields" id="admin-fields-btn" onclick="openFieldManager()">🎛️ تخصيص القوائم</button>
+        <button class="dock-btn excel" onclick="exportOrderToExcel()">📊 إكسل</button>
+        <button class="dock-btn logout" onclick="userLogout()">🚪 خروج</button>
+    </div>
+
+    <!-- الشيت الورقي المطابق 100% -->
+    <div class="sheet-body-wrap">
+        <div class="order-paper-card" id="main-order-paper">
+            <div class="paper-header">
+                <div class="brand-pill">
+                    <span>★ إيطاليانو ★</span><br>
+                    <span style="font-size: 7.5px;">للملابس الجاهزة</span>
+                </div>
+                <div class="title-text-wrap">
+                    <h2>★ مصنع إيطاليانو للقطن المصري ★</h2>
+                    <h3>★ طلب تجهيز أوردر ★</h3>
+                </div>
+            </div>
+
+            <!-- الحقول العلوية القابلة للتحويل إلى منسدلة أو نصية ديناميكياً -->
+            <table class="info-table">
+                <tr>
+                    <td class="lbl" style="width: 70px;">رقم الأوردر:</td>
+                    <td style="width: 60px;"><input type="text" id="ord-num" value="1018" style="color: #a30000; font-weight: bold; text-align: center;"></td>
+                    <td class="lbl" style="width: 45px;">التاريخ:</td>
+                    <td style="width: 75px;"><input type="text" id="ord-date" value="18/08/2026" style="text-align: center;"></td>
+                    <td class="lbl" style="width: 45px;">المندوب:</td>
+                    <td id="rep-field-container"><input type="text" id="rep-name" value="احمد سعد"></td>
+                </tr>
+                <tr>
+                    <td class="lbl">اسم العميل:</td>
+                    <td colspan="3"><input type="text" id="cust-name"></td>
+                    <td class="lbl">رقم التليفون:</td>
+                    <td><input type="tel" id="cust-phone"></td>
+                </tr>
+                <tr>
+                    <td class="lbl">العنوان:</td>
+                    <td colspan="5" id="address-field-container"><input type="text" id="cust-address" placeholder="المحافظة / المدينة / العنوان"></td>
+                </tr>
+                <tr>
+                    <td class="lbl">ملاحظات:</td>
+                    <td colspan="5"><input type="text" id="cust-notes"></td>
+                </tr>
+            </table>
+
+            <!-- جدول الأصناف الـ 12 صفاً مع شبكة مربعات كاملة وواضحة -->
+            <table class="items-grid-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25px;">م</th>
+                        <th style="width: 35px;">رقم</th>
+                        <th>الصنف / البيان</th>
+                        <th style="width: 75px;">اللون</th>
+                        <th style="width: 65px;">المقاس</th>
+                        <th style="width: 40px;">العدد</th>
+                        <th style="width: 55px;">السعر</th>
+                        <th style="width: 65px;">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody id="items-body"></tbody>
+            </table>
+
+            <!-- جدول الإجماليات المطابق مع خانة التفقيط بالعربي -->
+            <table class="summary-table">
+                <tr>
+                    <td colspan="6" style="font-weight: bold; text-align: center; background: #fdfdfd;">إجمالي الأصناف</td>
+                    <td colspan="2" style="font-weight: bold; width: 120px;" id="subtotal-display">0</td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="font-weight: bold; text-align: center; background: #fdfdfd;">مصاريف الشحن</td>
+                    <td colspan="2" style="width: 120px;"><input type="number" id="shipping-input" value="0" style="width: 100%; border: none; text-align: center; font-weight: bold;" oninput="calcOrderTotals()"></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold; width: 110px; background: #fdfdfd;">الإجمالي الكلي النهائي</td>
+                    <td colspan="5" class="tafqeet-cell" id="tafqeet-display">فقط لا غير</td>
+                    <td colspan="2" style="font-weight: bold; color: #1e3c72; width: 120px;" id="grandtotal-display">0</td>
+                </tr>
+            </table>
+
+            <!-- الفوتر وملاحظات التحضير والتوقيع -->
+            <div class="paper-footer">
+                <div class="footer-note-row">
+                    <span style="font-weight: bold;">ملاحظات:</span>
+                    <input type="text" id="footer-notes">
+                </div>
+                <div class="footer-action-row">
+                    <span style="font-weight: bold;">توقيع المسؤول: ............................................</span>
+                    <button class="btn-submit-order" onclick="saveAndExportPDF()">
+                        <span>🚀</span> طباعه وترحيل
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 1. شاشة التقارير المتقدمة والنسب والتحليلات الجغرافية (Admin Reports Dashboard) -->
+<div id="reports-modal-box" class="modal-bg">
+    <div class="modal-body-card">
+        <div class="modal-head">
+            <span>📈 لوحة التقارير والنسب والتحليل الجغرافي</span>
+            <span style="cursor: pointer;" onclick="closeReports()">✕</span>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="title">إجمالي الأوردرات</div>
+                <div class="val" id="rep-total-orders">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="title">إجمالي المبيعات</div>
+                <div class="val" id="rep-total-sales" style="color: #27ae60;">0 ج.م</div>
+            </div>
+            <div class="stat-card">
+                <div class="title">متوسط الأوردر</div>
+                <div class="val" id="rep-avg-order" style="color: #6366f1;">0 ج.م</div>
+            </div>
+        </div>
+
+        <!-- تقرير النسب حسب العناوين والمناطق -->
+        <div style="font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #1a2a6c;">📍 تقرير المبيعات حسب العناوين والمناطق:</div>
+        <div id="rep-address-stats" style="max-height: 110px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 6px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; background: #fff;"></div>
+
+        <!-- تقرير نسب إنجاز المستخدمين والمناديب -->
+        <div style="font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #1a2a6c;">👥 نسب مساهمة المناديب والمستخدمين:</div>
+        <div id="rep-users-stats" style="max-height: 110px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 6px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; background: #fff;"></div>
+
+        <!-- سجل العمليات التفصيلي مع الفلترة والحذف -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 12px; font-weight: bold; color: #1a2a6c;">📋 سجل العمليات:</span>
+            <input type="text" id="report-filter-input" placeholder="بحث بالعميل أو العنوان..." oninput="filterReportTable()" style="padding: 3px 6px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px; width: 160px;">
+        </div>
+        <div style="max-height: 140px; overflow-y: auto;">
+            <table class="archive-list-table">
+                <thead>
+                    <tr>
+                        <th>رقم</th>
+                        <th>العميل</th>
+                        <th>العنوان</th>
+                        <th>المستخدم</th>
+                        <th>الإجمالي</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="report-all-orders-tbody"></tbody>
+            </table>
+        </div>
+
+        <div style="text-align: left; margin-top: 10px;">
+            <button onclick="closeReports()" style="padding: 6px 16px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11.5px; cursor: pointer;">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- 2. شاشة مخصصة لإدارة وإضافة المستخدمين (User Management Screen) -->
+<div id="users-modal-box" class="modal-bg">
+    <div class="modal-body-card" style="max-width: 460px;">
+        <div class="modal-head">
+            <span>👥 إدارة المستخدمين وصلاحيات الدخول</span>
+            <span style="cursor: pointer;" onclick="closeUserManagement()">✕</span>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+            <div style="font-size: 11.5px; font-weight: bold; margin-bottom: 6px; color: #1a2a6c;">➕ إضافة مستخدم أو مندوب جديد:</div>
+            <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                <input type="text" id="new-sys-user" placeholder="اسم المستخدم" style="flex: 1; padding: 7px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px;">
+                <input type="password" id="new-sys-pass" placeholder="كلمة المرور" style="flex: 1; padding: 7px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <select id="new-sys-role" style="flex: 1; padding: 7px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="user">مندوب / مستخدم عادي</option>
+                    <option value="admin">مدير نظام (أدمن)</option>
+                </select>
+                <button onclick="createNewUser()" style="background: #27ae60; color: #fff; border: none; padding: 7px 16px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">حفظ المستخدم</button>
+            </div>
+        </div>
+
+        <div style="font-size: 12px; font-weight: bold; color: #1a2a6c; margin-bottom: 4px;">قائمة المستخدمين المسجلين:</div>
+        <div id="registered-users-list" style="max-height: 180px; overflow-y: auto; border: 1px solid #eee; padding: 6px; font-size: 12px; border-radius: 4px;"></div>
+
+        <div style="text-align: left; margin-top: 12px;">
+            <button onclick="closeUserManagement()" style="padding: 6px 16px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11.5px; cursor: pointer;">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- 3. شاشة تحويل الحقول وتخصيص القوائم المنسدلة (Field & Dropdown Manager) -->
+<div id="fields-modal-box" class="modal-bg">
+    <div class="modal-body-card">
+        <div class="modal-head">
+            <span>🎛️ تخصيص الحقول وتحويلها إلى قوائم منسدلة</span>
+            <span style="cursor: pointer;" onclick="closeFieldManager()">✕</span>
+        </div>
+
+        <!-- تحويل نوع الحقول في الشيت الرئيسي -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 8px; border-radius: 6px; margin-bottom: 12px; font-size: 11.5px;">
+            <div style="font-weight: bold; color: #1a2a6c; margin-bottom: 6px;">⚡ نوع حقول الشيت:</div>
+            <div style="display: flex; gap: 15px; margin-bottom: 6px;">
+                <label style="cursor: pointer;"><input type="checkbox" id="chk-rep-dropdown" onchange="toggleFieldTypes()"> تحويل حقل المندوب إلى قائمة منسدلة</label>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <label style="cursor: pointer;"><input type="checkbox" id="chk-addr-dropdown" onchange="toggleFieldTypes()"> تحويل حقل العنوان إلى قائمة منسدلة (المحافظات/المناطق)</label>
+            </div>
+        </div>
+
+        <!-- إضافة وتعديل خيارات القوائم المنسدلة -->
+        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+            <select id="select-list-target" onchange="renderTargetListTags()" style="padding: 6px; font-size: 11.5px; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; color: #1a2a6c;">
+                <option value="sizes">📏 قائمة المقاسات</option>
+                <option value="colors">🎨 قائمة الألوان</option>
+                <option value="reps">👔 قائمة المناديب</option>
+                <option value="areas">📍 قائمة المحافظات والمناطق</option>
+            </select>
+            <input type="text" id="new-item-val" placeholder="أدخل خياراً جديداً..." style="flex: 1; padding: 6px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px;">
+            <button onclick="addItemToCurrentTargetList()" style="background: #6366f1; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;">+ إضافة</button>
+        </div>
+
+        <div class="custom-tag-box" id="target-tags-container" style="max-height: 140px;"></div>
+
+        <div style="text-align: left; margin-top: 10px;">
+            <button onclick="closeFieldManager()" style="padding: 6px 16px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11.5px; cursor: pointer;">حفظ وتطبيق</button>
+        </div>
+    </div>
+</div>
+
+<!-- 4. مودال الأرشيف -->
+<div id="archive-modal-box" class="modal-bg">
+    <div class="modal-body-card">
+        <div class="modal-head">
+            <span>📂 أرشيف طلبات تجهيز الأوردرات</span>
+            <span style="cursor: pointer;" onclick="closeArchive()">✕</span>
+        </div>
+        <table class="archive-list-table">
+            <thead>
+                <tr>
+                    <th>رقم الأوردر</th>
+                    <th>التاريخ</th>
+                    <th>اسم العميل</th>
+                    <th>الإجمالي</th>
+                    <th>المعاينة</th>
+                </tr>
+            </thead>
+            <tbody id="archive-tbody"></tbody>
+        </table>
+        <div style="text-align: left; margin-top: 12px;">
+            <button onclick="closeArchive()" style="padding: 6px 16px; background: #555; color: #fff; border: none; border-radius: 3px; font-size: 11.5px; cursor: pointer;">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- 5. مودال معاينة الأوردر من الأرشيف -->
+<div id="preview-modal-box" class="modal-bg">
+    <div class="modal-body-card" style="max-width: 560px; padding: 10px;">
+        <div class="modal-head">
+            <span>معاينة طلب تجهيز أوردر</span>
+            <span style="cursor: pointer;" onclick="closePreview()">✕</span>
+        </div>
+        <div id="preview-render-area"></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+            <button onclick="printFromPreview()" style="padding: 6px 16px; background: #27ae60; color: #fff; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; font-size: 12px;">📄 طباعة PDF (A5)</button>
+            <button onclick="closePreview()" style="padding: 6px 16px; background: #666; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- حاوية مخفية لتوليد الـ PDF النظيف المربع بحجم A5 -->
+<div id="clean-pdf-generator" style="display: none;"></div>
+
+<script>
+    // القوائم المنسدلة المحفوظة محلياً والمشتركة لكل المستخدمين
+    let APP_SIZES = JSON.parse(localStorage.getItem('italiano_app_sizes')) || [
+        "-", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", "أوفر سايز", "مقاس خاص", "أطفال 4", "أطفال 6", "أطفال 8", "أطفال 10", "أطفال 12", "أطفال 14"
+    ];
+
+    let APP_COLORS = JSON.parse(localStorage.getItem('italiano_app_colors')) || [
+        "-", "أسود", "أبيض", "كحلي", "رمادي فاتح", "رمادي غامق", "بيج", "زيتي", "نبيتي", "أحمر", "أزرق ملكي", "هافان", "مستردة", "سيمون", "منت جرين"
+    ];
+
+    let APP_REPS = JSON.parse(localStorage.getItem('italiano_app_reps')) || [
+        "احمد سعد", "محمد ابراهيم", "محمود علي", "عمرو حسن"
+    ];
+
+    let APP_AREAS = JSON.parse(localStorage.getItem('italiano_app_areas')) || [
+        "الإسكندرية - محرم بك", "الإسكندرية - برج العرب", "الإسكندرية - سموحة", "القاهرة - مدينة نصر", "القاهرة - المعادي", "الجيزة - الدقي", "الدقهلية - المنصورة"
+    ];
+
+    let FIELD_SETTINGS = JSON.parse(localStorage.getItem('italiano_field_settings')) || {
+        repDropdown: false,
+        addressDropdown: false
+    };
+
+    let systemUsers = JSON.parse(localStorage.getItem('italiano_v10_users')) || [
+        { user: "23", pass: "2003", role: "admin", name: "محمود (مدير النظام)" }
+    ];
+
+    let orderArchive = JSON.parse(localStorage.getItem('italiano_v10_archive')) || [];
+    let loggedUser = null;
+    let previewedOrderData = null;
+
+    // --- دالة التفقيط بالعربي ---
+    function arabicTafqeet(number) {
+        if (isNaN(number) || number === 0) return "صفر جنيهاً فقط لا غير";
+        const ones = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة", "عشرة", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"];
+        const tens = ["", "", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
+        const hundreds = ["", "مائة", "مائتان", "ثلاثمائة", "أربعمائة", "خمسمائة", "ستمائة", "سبعمائة", "ثمانمائة", "تسعمائة"];
+
+        function convertThreeDigits(num) {
+            let res = "";
+            let h = Math.floor(num / 100);
+            let rem = num % 100;
+            let t = Math.floor(rem / 10);
+            let o = rem % 10;
+            if (h > 0) res += hundreds[h];
+            if (rem > 0) {
+                if (h > 0) res += " و ";
+                if (rem < 20) res += ones[rem];
+                else {
+                    if (o > 0) res += ones[o] + " و ";
+                    res += tens[t];
+                }
+            }
+            return res;
+        }
+
+        let num = parseInt(number);
+        let result = "";
+        if (num >= 1000000) {
+            let mil = Math.floor(num / 1000000);
+            num %= 1000000;
+            if (mil === 1) result += "مليون";
+            else if (mil === 2) result += "مليونان";
+            else if (mil >= 3 && mil <= 10) result += convertThreeDigits(mil) + " ملايين";
+            else result += convertThreeDigits(mil) + " مليون";
+        }
+        if (num >= 1000) {
+            let th = Math.floor(num / 1000);
+            num %= 1000;
+            if (result !== "") result += " و ";
+            if (th === 1) result += "ألف";
+            else if (th === 2) result += "ألفان";
+            else if (th >= 3 && th <= 10) result += convertThreeDigits(th) + " آلاف";
+            else result += convertThreeDigits(th) + " ألف";
+        }
+        if (num > 0) {
+            if (result !== "") result += " و ";
+            result += convertThreeDigits(num);
+        }
+        return result + " جنيهاً فقط لا غير";
+    }
+
+    window.onload = function() {
+        applyFieldTypeSettings();
+        buildRows();
+        const d = new Date();
+        document.getElementById('ord-date').value = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    };
+
+    function applyFieldTypeSettings() {
+        // حقل المندوب
+        const repCont = document.getElementById('rep-field-container');
+        if(FIELD_SETTINGS.repDropdown) {
+            let opts = APP_REPS.map(r => `<option value="${r}">${r}</option>`).join('');
+            repCont.innerHTML = `<select id="rep-name">${opts}</select>`;
+        } else {
+            repCont.innerHTML = `<input type="text" id="rep-name" value="احمد سعد">`;
+        }
+
+        // حقل العنوان
+        const addrCont = document.getElementById('address-field-container');
+        if(FIELD_SETTINGS.addressDropdown) {
+            let opts = APP_AREAS.map(a => `<option value="${a}">${a}</option>`).join('');
+            addrCont.innerHTML = `<select id="cust-address">${opts}</select>`;
+        } else {
+            addrCont.innerHTML = `<input type="text" id="cust-address" placeholder="المحافظة / المدينة / العنوان">`;
+        }
+
+        document.getElementById('chk-rep-dropdown').checked = FIELD_SETTINGS.repDropdown;
+        document.getElementById('chk-addr-dropdown').checked = FIELD_SETTINGS.addressDropdown;
+    }
+
+    function buildRows() {
+        const tbody = document.getElementById('items-body');
+        tbody.innerHTML = '';
+        for (let i = 1; i <= 12; i++) {
+            let colorOpts = APP_COLORS.map(c => `<option value="${c}">${c}</option>`).join('');
+            let sizeOpts = APP_SIZES.map(s => `<option value="${s}">${s}</option>`).join('');
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-weight: bold; background: #fafafa;">${i}</td>
+                <td><input type="text" class="r-code"></td>
+                <td><input type="text" class="r-title"></td>
+                <td><select class="r-color">${colorOpts}</select></td>
+                <td><select class="r-size">${sizeOpts}</select></td>
+                <td><input type="number" class="r-qty" min="0" oninput="calcOrderTotals()"></td>
+                <td><input type="number" class="r-price" min="0" oninput="calcOrderTotals()"></td>
+                <td class="r-total" style="font-weight: bold; background: #fdfdfd;">0</td>
+            `;
+            tbody.appendChild(tr);
+        }
+    }
+
+    function togglePass() {
+        const p = document.getElementById('pass-input');
+        p.type = document.getElementById('show-pass-chk').checked ? "text" : "password";
+    }
+
+    function handleUserLogin() {
+        const u = document.getElementById('user-input').value.trim();
+        const p = document.getElementById('pass-input').value.trim();
+
+        const match = systemUsers.find(item => item.user === u && item.pass === p);
+        if (match) {
+            loggedUser = match;
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById('user-status-tag').innerText = `(${match.user} - ${match.role === 'admin' ? 'مدير النظام ★' : 'مندوب'})`;
+            
+            // قصر أزرار الإدارة والتقارير والمستخدمين على الأدمن فقط
+            if (match.role !== 'admin') {
+                document.getElementById('admin-reports-btn').style.display = 'none';
+                document.getElementById('admin-users-btn').style.display = 'none';
+                document.getElementById('admin-fields-btn').style.display = 'none';
+            } else {
+                document.getElementById('admin-reports-btn').style.display = 'flex';
+                document.getElementById('admin-users-btn').style.display = 'flex';
+                document.getElementById('admin-fields-btn').style.display = 'flex';
+            }
+        } else {
+            document.getElementById('login-err-msg').style.display = 'block';
+        }
+    }
+
+    function userLogout() {
+        if(confirm('هل تريد تسجيل الخروج؟')) location.reload();
+    }
+
+    function calcOrderTotals() {
+        let subtotal = 0;
+        document.querySelectorAll('#items-body tr').forEach(r => {
+            const q = parseFloat(r.querySelector('.r-qty').value) || 0;
+            const p = parseFloat(r.querySelector('.r-price').value) || 0;
+            const line = q * p;
+            r.querySelector('.r-total').innerText = line ? line.toLocaleString() : '0';
+            subtotal += line;
+        });
+
+        const shipping = parseFloat(document.getElementById('shipping-input').value) || 0;
+        const grand = subtotal + shipping;
+
+        document.getElementById('subtotal-display').innerText = subtotal.toLocaleString();
+        document.getElementById('grandtotal-display').innerText = grand.toLocaleString();
+        document.getElementById('tafqeet-display').innerText = arabicTafqeet(grand);
+    }
+
+    function saveAndExportPDF() {
+        const client = document.getElementById('cust-name').value;
+        if(!client) {
+            alert('يرجى كتابة اسم العميل أولاً!');
+            return;
+        }
+
+        const ordId = document.getElementById('ord-num').value;
+        let itemsList = [];
+        document.querySelectorAll('#items-body tr').forEach((r, idx) => {
+            itemsList.push({
+                index: idx + 1,
+                code: r.querySelector('.r-code').value,
+                title: r.querySelector('.r-title').value,
+                color: r.querySelector('.r-color').value,
+                size: r.querySelector('.r-size').value,
+                qty: r.querySelector('.r-qty').value || '0',
+                price: r.querySelector('.r-price').value || '0',
+                total: r.querySelector('.r-total').innerText || '0'
+            });
+        });
+
+        const orderRecord = {
+            id: ordId,
+            date: document.getElementById('ord-date').value,
+            rep: document.getElementById('rep-name').value,
+            client: client,
+            phone: document.getElementById('cust-phone').value,
+            address: document.getElementById('cust-address').value,
+            notes: document.getElementById('cust-notes').value,
+            footerNotes: document.getElementById('footer-notes').value,
+            items: itemsList,
+            subtotal: document.getElementById('subtotal-display').innerText,
+            shipping: document.getElementById('shipping-input').value,
+            grandTotal: document.getElementById('grandtotal-display').innerText,
+            tafqeet: document.getElementById('tafqeet-display').innerText,
+            byUser: loggedUser ? loggedUser.user : '23'
+        };
+
+        orderArchive.push(orderRecord);
+        localStorage.setItem('italiano_v10_archive', JSON.stringify(orderArchive));
+
+        exportCleanA5PDF(orderRecord);
+
+        alert(`تم ترحيل أوردر رقم (${ordId}) وتوليد الفاتورة بنجاح! 🚀`);
+
+        document.getElementById('ord-num').value = parseInt(ordId) + 1;
+        document.getElementById('cust-name').value = '';
+        document.getElementById('cust-phone').value = '';
+        if(!FIELD_SETTINGS.addressDropdown) document.getElementById('cust-address').value = '';
+        document.getElementById('cust-notes').value = '';
+        document.getElementById('footer-notes').value = '';
+        buildRows();
+        calcOrderTotals();
+    }
+
+    function exportCleanA5PDF(ord) {
+        let itemsRowsHtml = ord.items.map(it => `
+            <tr>
+                <td style="font-weight:bold; width:25px; border:1px solid #444; padding:3px 1px; text-align:center;">${it.index}</td>
+                <td style="width:35px; border:1px solid #444; padding:3px 1px; text-align:center;">${it.code || ''}</td>
+                <td style="text-align:right; border:1px solid #444; padding:3px 4px;">${it.title || ''}</td>
+                <td style="width:75px; border:1px solid #444; padding:3px 1px; text-align:center;">${it.color && it.color !== '-' ? it.color : ''}</td>
+                <td style="width:65px; border:1px solid #444; padding:3px 1px; text-align:center;">${it.size && it.size !== '-' ? it.size : ''}</td>
+                <td style="width:40px; border:1px solid #444; padding:3px 1px; text-align:center;">${it.qty > 0 ? it.qty : ''}</td>
+                <td style="width:55px; border:1px solid #444; padding:3px 1px; text-align:center;">${it.price > 0 ? it.price : ''}</td>
+                <td style="font-weight:bold; width:65px; border:1px solid #444; padding:3px 1px; text-align:center;">${it.total !== '0' ? it.total : ''}</td>
+            </tr>
+        `).join('');
+
+        const container = document.getElementById('clean-pdf-generator');
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div style="width: 140mm; min-height: 200mm; background: #fff; padding: 4mm 5mm; box-sizing: border-box; direction: rtl; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #111;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #222; padding-bottom: 4px; margin-bottom: 4px;">
+                    <div style="background: #111; color: #fff; padding: 4px 8px; text-align: center; font-size: 8.5pt; font-weight: bold; border-radius: 2px; line-height: 1.2;">
+                        ★ إيطاليانو ★<br><span style="font-size: 7pt;">للملابس الجاهزة</span>
+                    </div>
+                    <div style="text-align: center; flex: 1;">
+                        <h2 style="color: #a30000; font-size: 11.5pt; margin: 0; font-weight: bold;">★ مصنع إيطاليانو للقطن المصري ★</h2>
+                        <h3 style="color: #a30000; font-size: 10pt; margin: 2px 0; font-weight: bold;">★ طلب تجهيز أوردر ★</h3>
+                    </div>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px; font-size: 8.5pt;">
+                    <tr>
+                        <td style="border: 1px solid #444; background: #f2eee6; font-weight: bold; width: 65px; text-align: center; padding: 2px 4px;">رقم الأوردر:</td>
+                        <td style="border: 1px solid #444; width: 65px; color: #a30000; font-weight: bold; text-align: center; padding: 2px 4px;">${ord.id}</td>
+                        <td style="border: 1px solid #444; background: #f2eee6; font-weight: bold; width: 45px; text-align: center; padding: 2px 4px;">التاريخ:</td>
+                        <td style="border: 1px solid #444; width: 75px; text-align: center; padding: 2px 4px;">${ord.date}</td>
+                        <td style="border: 1px solid #444; background: #f2eee6; font-weight: bold; width: 50px; text-align: center; padding: 2px 4px;">المندوب:</td>
+                        <td style="border: 1px solid #444; padding: 2px 4px;">${ord.rep}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #444; background: #f2eee6; font-weight: bold; text-align: center; padding: 2px 4px;">اسم العميل:</td>
+                        <td colspan="3" style="border: 1px solid #444; font-weight: bold; padding: 2px 4px;">${ord.client}</td>
+                        <td style="border: 1px solid #444; background: #f2eee6; font-weight: bold; text-align: center; padding: 2px 4px;">رقم التليفون:</td>
+                        <td style="border: 1px solid #444; padding: 2px 4px;">${ord.phone || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #444; background: #f2eee6; font-weight: bold; text-align: center; padding: 2px 4px;">العنوان:</td>
+                        <td colspan="5" style="border: 1px solid #444; padding: 2px 4px;">${ord.address || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #444; background: #f2eee6; font-weight: bold; text-align: center; padding: 2px 4px;">ملاحظات:</td>
+                        <td colspan="5" style="border: 1px solid #444; padding: 2px 4px;">${ord.notes || ''}</td>
+                    </tr>
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 8pt; margin-bottom: -1px;">
+                    <thead>
+                        <tr style="background: #ece7de; font-weight: bold;">
+                            <th style="border: 1px solid #444; padding: 3px 1px; width: 25px;">م</th>
+                            <th style="border: 1px solid #444; padding: 3px 1px; width: 35px;">رقم</th>
+                            <th style="border: 1px solid #444; padding: 3px 2px;">الصنف / البيان</th>
+                            <th style="border: 1px solid #444; padding: 3px 1px; width: 75px;">اللون</th>
+                            <th style="border: 1px solid #444; padding: 3px 1px; width: 65px;">المقاس</th>
+                            <th style="border: 1px solid #444; padding: 3px 1px; width: 40px;">العدد</th>
+                            <th style="border: 1px solid #444; padding: 3px 1px; width: 55px;">السعر</th>
+                            <th style="border: 1px solid #444; padding: 3px 1px; width: 65px;">الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsRowsHtml}</tbody>
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 8.5pt;">
+                    <tr>
+                        <td colspan="6" style="border: 1px solid #444; font-weight: bold; text-align: center; background: #fdfdfd; padding: 2px;">إجمالي الأصناف</td>
+                        <td colspan="2" style="border: 1px solid #444; width: 120px; font-weight: bold; text-align: center; padding: 2px;">${ord.subtotal}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="border: 1px solid #444; font-weight: bold; text-align: center; background: #fdfdfd; padding: 2px;">مصاريف الشحن</td>
+                        <td colspan="2" style="border: 1px solid #444; width: 120px; font-weight: bold; text-align: center; padding: 2px;">${ord.shipping}</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #444; font-weight: bold; width: 90px; text-align: center; padding: 2px;">الإجمالي الكلي النهائي</td>
+                        <td colspan="5" style="border: 1px solid #444; font-size: 7.5pt; font-weight: bold; text-align: center; padding: 2px;">${ord.tafqeet}</td>
+                        <td colspan="2" style="border: 1px solid #444; width: 120px; font-weight: bold; color: #1e3c72; text-align: center; padding: 2px;">${ord.grandTotal}</td>
+                    </tr>
+                </table>
+
+                <div style="border: 1px solid #444; border-top: none; padding: 4px 6px; font-size: 8.5pt;">
+                    <div style="margin-bottom: 4px;"><strong>ملاحظات:</strong> ${ord.footerNotes || ''}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 2px;">
+                        <span><strong>توقيع المسؤول:</strong> ............................................</span>
+                        <span style="color: #666; font-size: 7.5pt;">بواسطة: ${ord.byUser}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const opt = {
+            margin: [2, 2, 2, 2],
+            filename: `طلب_تجهيز_أوردر_${ord.id}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(container.children[0]).save().then(() => {
+            container.style.display = 'none';
+        });
+    }
+
+    // ---------------- 1. وظائف التقارير المتقدمة والنسب الجغرافية ----------------
+    function openReportsDashboard() {
+        if (!loggedUser || loggedUser.role !== 'admin') return alert('خاصية للمدير فقط!');
+        
+        let totalSales = 0;
+        let areaStats = {};
+        let userStats = {};
+
+        orderArchive.forEach(o => {
+            let cleanTotal = parseFloat(o.grandTotal.replace(/,/g, '')) || 0;
+            totalSales += cleanTotal;
+
+            // تجميع العناوين والمناطق
+            let addr = o.address ? o.address.trim() : 'غير محدد';
+            if(!areaStats[addr]) areaStats[addr] = { count: 0, sum: 0 };
+            areaStats[addr].count++;
+            areaStats[addr].sum += cleanTotal;
+
+            // تجميع المستخدمين
+            let u = o.byUser || '23';
+            if(!userStats[u]) userStats[u] = { count: 0, sum: 0 };
+            userStats[u].count++;
+            userStats[u].sum += cleanTotal;
+        });
+
+        document.getElementById('rep-total-orders').innerText = orderArchive.length;
+        document.getElementById('rep-total-sales').innerText = totalSales.toLocaleString() + ' ج.م';
+        let avg = orderArchive.length ? (totalSales / orderArchive.length) : 0;
+        document.getElementById('rep-avg-order').innerText = avg.toFixed(0) + ' ج.م';
+
+        // تقرير المناطق مع النسب المئوية (%)
+        let areaHtml = '';
+        for(let a in areaStats) {
+            let pct = totalSales ? ((areaStats[a].sum / totalSales) * 100).toFixed(1) : 0;
+            areaHtml += `
+                <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed #eee;">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>📍 ${a} (${areaStats[a].count} أوردر)</span>
+                        <span style="color:#1a2a6c;">${areaStats[a].sum.toLocaleString()} ج.م (${pct}%)</span>
+                    </div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%; background:#10b981;"></div></div>
+                </div>
+            `;
+        }
+        document.getElementById('rep-address-stats').innerHTML = areaHtml || '<div style="color:#888;">لا توجد طلبات مسجلة بعد.</div>';
+
+        // تقرير المستخدمين مع النسب المئوية (%)
+        let userHtml = '';
+        for(let u in userStats) {
+            let pct = totalSales ? ((userStats[u].sum / totalSales) * 100).toFixed(1) : 0;
+            userHtml += `
+                <div style="margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px dashed #eee;">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>👤 المستخدم: ${u} (${userStats[u].count} أوردر)</span>
+                        <span style="color:#6366f1;">${userStats[u].sum.toLocaleString()} ج.م (${pct}%)</span>
+                    </div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%; background:#6366f1;"></div></div>
+                </div>
+            `;
+        }
+        document.getElementById('rep-users-stats').innerHTML = userHtml || '<div style="color:#888;">لا توجد بيانات مسجلة بعد.</div>';
+
+        renderReportTable(orderArchive);
+        document.getElementById('reports-modal-box').style.display = 'flex';
+    }
+
+    function renderReportTable(data) {
+        document.getElementById('report-all-orders-tbody').innerHTML = data.map((ord, idx) => `
+            <tr>
+                <td style="font-weight:bold;">#${ord.id}</td>
+                <td>${ord.client}</td>
+                <td>${ord.address || '-'}</td>
+                <td>${ord.byUser}</td>
+                <td style="font-weight:bold;">${ord.grandTotal}</td>
+                <td><button onclick="deleteOrderFromReports(${idx})" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function filterReportTable() {
+        const q = document.getElementById('report-filter-input').value.toLowerCase();
+        const filtered = orderArchive.filter(o => 
+            (o.client && o.client.toLowerCase().includes(q)) || 
+            (o.address && o.address.toLowerCase().includes(q)) ||
+            (o.byUser && o.byUser.toLowerCase().includes(q))
+        );
+        renderReportTable(filtered);
+    }
+
+    function deleteOrderFromReports(idx) {
+        if(confirm('هل تريد حذف هذا الأوردر نهائياً؟')) {
+            orderArchive.splice(idx, 1);
+            localStorage.setItem('italiano_v10_archive', JSON.stringify(orderArchive));
+            openReportsDashboard();
+        }
+    }
+
+    function closeReports() { document.getElementById('reports-modal-box').style.display = 'none'; }
+
+    // ---------------- 2. وظائف شاشة إدارة المستخدمين المستقلة ----------------
+    function openUserManagement() {
+        if (!loggedUser || loggedUser.role !== 'admin') return alert('خاصية للمدير فقط!');
+        renderRegisteredUsers();
+        document.getElementById('users-modal-box').style.display = 'flex';
+    }
+
+    function closeUserManagement() { document.getElementById('users-modal-box').style.display = 'none'; }
+
+    function renderRegisteredUsers() {
+        document.getElementById('registered-users-list').innerHTML = systemUsers.map((u, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #eee;">
+                <div>
+                    <strong>${u.user}</strong> <span style="font-size:10.5px; color:#666;">(${u.role === 'admin' ? 'مدير نظام ★' : 'مندوب'})</span>
+                    <br><span style="font-size:10px; color:#888;">كلمة المرور: ${u.pass}</span>
+                </div>
+                <div>
+                    ${u.role !== 'admin' ? `<button onclick="deleteSysUser(${i})" style="background:#fee2e2; color:#b91c1c; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:11px;">حذف</button>` : '<span style="color:#22c55e; font-size:11px; font-weight:bold;">رئيسي</span>'}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function createNewUser() {
+        const u = document.getElementById('new-sys-user').value.trim();
+        const p = document.getElementById('new-sys-pass').value.trim();
+        const r = document.getElementById('new-sys-role').value;
+        if(!u || !p) return alert('يرجى كتابة اسم المستخدم وكلمة المرور');
+
+        if(systemUsers.some(x => x.user === u)) return alert('اسم المستخدم موجود بالفعل!');
+
+        systemUsers.push({ user: u, pass: p, role: r, name: u });
+        localStorage.setItem('italiano_v10_users', JSON.stringify(systemUsers));
+        renderRegisteredUsers();
+        document.getElementById('new-sys-user').value = '';
+        document.getElementById('new-sys-pass').value = '';
+        alert('تمت إضافة المستخدم بنجاح!');
+    }
+
+    function deleteSysUser(i) {
+        if(confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
+            systemUsers.splice(i, 1);
+            localStorage.setItem('italiano_v10_users', JSON.stringify(systemUsers));
+            renderRegisteredUsers();
+        }
+    }
+
+    // ---------------- 3. وظائف تحويل الحقول وإدارة القوائم ----------------
+    function openFieldManager() {
+        if (!loggedUser || loggedUser.role !== 'admin') return alert('خاصية للمدير فقط!');
+        renderTargetListTags();
+        document.getElementById('fields-modal-box').style.display = 'flex';
+    }
+
+    function closeFieldManager() {
+        document.getElementById('fields-modal-box').style.display = 'none';
+        applyFieldTypeSettings();
+        buildRows();
+    }
+
+    function toggleFieldTypes() {
+        FIELD_SETTINGS.repDropdown = document.getElementById('chk-rep-dropdown').checked;
+        FIELD_SETTINGS.addressDropdown = document.getElementById('chk-addr-dropdown').checked;
+        localStorage.setItem('italiano_field_settings', JSON.stringify(FIELD_SETTINGS));
+    }
+
+    function renderTargetListTags() {
+        const target = document.getElementById('select-list-target').value;
+        let list = [];
+        if(target === 'sizes') list = APP_SIZES;
+        else if(target === 'colors') list = APP_COLORS;
+        else if(target === 'reps') list = APP_REPS;
+        else if(target === 'areas') list = APP_AREAS;
+
+        document.getElementById('target-tags-container').innerHTML = list.map((item, idx) => item !== '-' ? `
+            <div class="tag-item"><span>${item}</span><button onclick="removeTargetItem(${idx})">×</button></div>
+        ` : '').join('');
+    }
+
+    function addItemToCurrentTargetList() {
+        const target = document.getElementById('select-list-target').value;
+        const val = document.getElementById('new-item-val').value.trim();
+        if(!val) return;
+
+        if(target === 'sizes' && !APP_SIZES.includes(val)) { APP_SIZES.push(val); localStorage.setItem('italiano_app_sizes', JSON.stringify(APP_SIZES)); }
+        else if(target === 'colors' && !APP_COLORS.includes(val)) { APP_COLORS.push(val); localStorage.setItem('italiano_app_colors', JSON.stringify(APP_COLORS)); }
+        else if(target === 'reps' && !APP_REPS.includes(val)) { APP_REPS.push(val); localStorage.setItem('italiano_app_reps', JSON.stringify(APP_REPS)); }
+        else if(target === 'areas' && !APP_AREAS.includes(val)) { APP_AREAS.push(val); localStorage.setItem('italiano_app_areas', JSON.stringify(APP_AREAS)); }
+
+        document.getElementById('new-item-val').value = '';
+        renderTargetListTags();
+    }
+
+    function removeTargetItem(idx) {
+        const target = document.getElementById('select-list-target').value;
+        if(target === 'sizes') { APP_SIZES.splice(idx, 1); localStorage.setItem('italiano_app_sizes', JSON.stringify(APP_SIZES)); }
+        else if(target === 'colors') { APP_COLORS.splice(idx, 1); localStorage.setItem('italiano_app_colors', JSON.stringify(APP_COLORS)); }
+        else if(target === 'reps') { APP_REPS.splice(idx, 1); localStorage.setItem('italiano_app_reps', JSON.stringify(APP_REPS)); }
+        else if(target === 'areas') { APP_AREAS.splice(idx, 1); localStorage.setItem('italiano_app_areas', JSON.stringify(APP_AREAS)); }
+        renderTargetListTags();
+    }
+
+    // ---------------- 4. الأرشيف ومعاينة الأوردر ----------------
+    function openArchive() {
+        const tbody = document.getElementById('archive-tbody');
+        if(orderArchive.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="padding:15px; color:#888;">لا توجد أوردرات مرحلة في الأرشيف حتى الآن.</td></tr>';
+        } else {
+            tbody.innerHTML = orderArchive.map((ord, idx) => `
+                <tr>
+                    <td style="font-weight:bold; color:#a30000; cursor:pointer;" onclick="viewOrder(${idx})">#${ord.id}</td>
+                    <td>${ord.date}</td>
+                    <td style="font-weight:bold; cursor:pointer; color:#1a2a6c;" onclick="viewOrder(${idx})">${ord.client}</td>
+                    <td style="font-weight:bold;">${ord.grandTotal} ج.م</td>
+                    <td><button onclick="viewOrder(${idx})" style="background:#1a2a6c; color:#fff; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:11px;">👁️ عرض</button></td>
+                </tr>
+            `).join('');
+        }
+        document.getElementById('archive-modal-box').style.display = 'flex';
+    }
+
+    function closeArchive() { document.getElementById('archive-modal-box').style.display = 'none'; }
+
+    function viewOrder(idx) {
+        const ord = orderArchive[idx];
+        previewedOrderData = ord;
+
+        let itemsRowsHtml = ord.items.map(it => `
+            <tr>
+                <td style="font-weight:bold; border:1px solid #444; text-align:center;">${it.index}</td>
+                <td style="border:1px solid #444; text-align:center;">${it.code || ''}</td>
+                <td style="text-align:right; border:1px solid #444; padding-right:4px;">${it.title || ''}</td>
+                <td style="border:1px solid #444; text-align:center;">${it.color && it.color !== '-' ? it.color : ''}</td>
+                <td style="border:1px solid #444; text-align:center;">${it.size && it.size !== '-' ? it.size : ''}</td>
+                <td style="border:1px solid #444; text-align:center;">${it.qty > 0 ? it.qty : ''}</td>
+                <td style="border:1px solid #444; text-align:center;">${it.price > 0 ? it.price : ''}</td>
+                <td style="font-weight:bold; border:1px solid #444; text-align:center;">${it.total !== '0' ? it.total : ''}</td>
+            </tr>
+        `).join('');
+
+        document.getElementById('preview-render-area').innerHTML = `
+            <div style="background:#fff; border:1.5px solid #444; padding:8px; font-size:11px; direction:rtl; width:100%;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #222; padding-bottom:4px; margin-bottom:4px;">
+                    <div style="background:#111; color:#fff; padding:3px 8px; text-align:center; font-size:9px; font-weight:bold; border-radius:2px;">
+                        ★ إيطاليانو ★<br><span style="font-size:7.5px;">للملابس الجاهزة</span>
+                    </div>
+                    <div style="text-align:center; flex:1;">
+                        <h2 style="color:#a30000; font-size:13px; margin:0;">★ مصنع إيطاليانو للقطن المصري ★</h2>
+                        <h3 style="color:#a30000; font-size:11.5px; margin:2px 0;">★ طلب تجهيز أوردر ★</h3>
+                    </div>
+                </div>
+
+                <table class="info-table" style="margin-bottom:5px;">
+                    <tr>
+                        <td class="lbl">رقم الأوردر:</td>
+                        <td style="color:#a30000; font-weight:bold; text-align:center;">${ord.id}</td>
+                        <td class="lbl">التاريخ:</td>
+                        <td style="text-align:center;">${ord.date}</td>
+                        <td class="lbl">المندوب:</td>
+                        <td>${ord.rep}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">اسم العميل:</td>
+                        <td colspan="3"><strong>${ord.client}</strong></td>
+                        <td class="lbl">رقم التليفون:</td>
+                        <td>${ord.phone || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">العنوان:</td>
+                        <td colspan="5">${ord.address || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">ملاحظات:</td>
+                        <td colspan="5">${ord.notes || ''}</td>
+                    </tr>
+                </table>
+
+                <table class="items-grid-table" style="font-size:10.5px;">
+                    <thead>
+                        <tr>
+                            <th style="width:25px;">م</th>
+                            <th style="width:35px;">رقم</th>
+                            <th>الصنف / البيان</th>
+                            <th style="width:75px;">اللون</th>
+                            <th style="width:65px;">المقاس</th>
+                            <th style="width:40px;">العدد</th>
+                            <th style="width:50px;">السعر</th>
+                            <th style="width:60px;">الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsRowsHtml}</tbody>
+                </table>
+
+                <table class="summary-table" style="font-size:11px;">
+                    <tr>
+                        <td colspan="6" style="font-weight:bold; text-align:center; background:#fdfdfd;">إجمالي الأصناف</td>
+                        <td colspan="2" style="font-weight:bold; width:110px;">${ord.subtotal}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="6" style="font-weight:bold; text-align:center; background:#fdfdfd;">مصاريف الشحن</td>
+                        <td colspan="2" style="font-weight:bold; width:110px;">${ord.shipping}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:bold; width:100px; background:#fdfdfd;">الإجمالي الكلي النهائي</td>
+                        <td colspan="5" style="font-size:10px; font-weight:bold; text-align:center;">${ord.tafqeet}</td>
+                        <td colspan="2" style="font-weight:bold; color:#1e3c72; width:110px;">${ord.grandTotal}</td>
+                    </tr>
+                </table>
+
+                <div style="border:1px solid #444; border-top:none; padding:4px 6px;">
+                    <div style="font-size:10.5px; margin-bottom:4px;"><strong>ملاحظات:</strong> ${ord.footerNotes || ''}</div>
+                    <div style="display:flex; justify-content:space-between; font-size:10.5px;">
+                        <span>توقيع المسؤول: ............................................</span>
+                        <span style="color:#666;">بواسطة: ${ord.byUser}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('preview-modal-box').style.display = 'flex';
+    }
+
+    function closePreview() { document.getElementById('preview-modal-box').style.display = 'none'; }
+
+    function printFromPreview() {
+        if(previewedOrderData) exportCleanA5PDF(previewedOrderData);
+    }
+
+    function exportOrderToExcel() {
+        const wb = XLSX.utils.book_new();
+        const wsData = [
+            ["مصنع إيطاليانو للقطن المصري - طلب تجهيز أوردر"],
+            ["رقم الأوردر", document.getElementById('ord-num').value, "التاريخ", document.getElementById('ord-date').value, "المندوب", document.getElementById('rep-name').value],
+            ["اسم العميل", document.getElementById('cust-name').value, "رقم التليفون", document.getElementById('cust-phone').value],
+            ["العنوان", document.getElementById('cust-address').value],
+            ["ملاحظات", document.getElementById('cust-notes').value],
+            [],
+            ["م", "رقم", "الصنف / البيان", "اللون", "المقاس", "العدد", "السعر", "الإجمالي"]
+        ];
+
+        document.querySelectorAll('#items-body tr').forEach((r, idx) => {
+            const title = r.querySelector('.r-title').value;
+            const code = r.querySelector('.r-code').value;
+            if(title || code) {
+                wsData.push([
+                    idx + 1,
+                    code,
+                    title,
+                    r.querySelector('.r-color').value,
+                    r.querySelector('.r-size').value,
+                    r.querySelector('.r-qty').value || 0,
+                    r.querySelector('.r-price').value || 0,
+                    r.querySelector('.r-total').innerText
+                ]);
+            }
+        });
+
+        wsData.push([]);
+        wsData.push(["إجمالي الأصناف", "", "", "", "", "", "", document.getElementById('subtotal-display').innerText]);
+        wsData.push(["مصاريف الشحن", "", "", "", "", "", "", document.getElementById('shipping-input').value]);
+        wsData.push(["الإجمالي الكلي النهائي", document.getElementById('tafqeet-display').innerText, "", "", "", "", "", document.getElementById('grandtotal-display').innerText]);
+        wsData.push(["ملاحظات الفوتر", document.getElementById('footer-notes').value]);
+
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        XLSX.utils.book_append_sheet(wb, ws, "Order");
+        XLSX.writeFile(wb, `طلب_تجهيز_أوردر_${document.getElementById('ord-num').value}.xlsx`);
+    }
+</script>
+</body>
+</html>
